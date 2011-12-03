@@ -458,7 +458,8 @@ exports.Comment = class Comment extends Base
   compileNode: (o, level) ->
     code = '/*' + multident(@comment, @tab) + "\n#{@tab}*/"
     code = o.indent + code if (level or o.level) is LEVEL_TOP
-    code
+    #code
+    ""
 
 #### Call
 
