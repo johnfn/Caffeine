@@ -274,7 +274,7 @@ exports.Block = class Block extends Base
         code += '\n' if i
         code += "#{@tab}(var "
         if declars
-          code += scope.declaredVariables().join ', '
+          code += scope.declaredVariables().join ' '
         if assigns
           code += ",\n#{@tab + TAB}" if declars
           code += scope.assignedVariables().join ",\n#{@tab + TAB}"
