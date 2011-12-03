@@ -554,7 +554,7 @@ exports.Call = class Call extends Base
     if code = Splat.compileSplattedArray o, @args, true
       return @compileSplat o, code
     args = @filterImplicitObjects @args
-    args = (arg.compile o, LEVEL_LIST for arg in args).join ', '
+    args = (arg.compile o, LEVEL_LIST for arg in args).join ' '
     if @isSuper
       @superReference(o) + ".call(this#{ args and ', ' + args })" #TODO
     else
