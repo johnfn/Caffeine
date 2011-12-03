@@ -196,7 +196,7 @@ watch = (source, base) ->
 # are written out in `cwd` as `.js` files with the same name, but the output
 # directory can be customized with `--output`.
 writeJs = (source, js, base) ->
-  filename  = path.basename(source, path.extname(source)) + '.js'
+  filename  = path.basename(source, path.extname(source)) + '.sc'
   srcDir    = path.dirname source
   baseDir   = if base is '.' then srcDir else srcDir.substring base.length
   dir       = if opts.output then path.join opts.output, baseDir else srcDir
