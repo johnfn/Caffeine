@@ -27,6 +27,8 @@ class Node:
     return "(function(){return %s;})()" % (str)
   
   def compile(self):
+    ops = ["+", "/", "*", "-", "||", "&&", "===", "!=="]
+    
     name = self.name
     if name == "=":
       return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
@@ -48,12 +50,12 @@ class Node:
       return "function %s { %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
     elif name == "arglist":
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
-    elif name == "+":
-      return "(%s + %s)" % (self.args[0].compile(), self.args[1].compile())
-    elif name == "/":
-      return "(%s / %s)" % (self.args[0].compile(), self.args[1].compile())
-    else: #unknown function name, translate to js directly
-      return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
+
+    for op in ops:
+      if name == op:
+        return "(%s %s %s)" % (self.args[0].compile(), op, self.args[1].compile())
+
+    return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
 
 
 class Atom:
