@@ -1456,20 +1456,20 @@ exports.Try = class Try extends Base
   # is optional, the *catch* is not.
   compileNode: (o) ->
     o.indent  += TAB
-    errorPart = if @error then " (#{ @error.compile o }) " else ' '
+    errorPart = if @error then " (arglist #{ @error.compile o }) " else ' '
     tryPart   = @attempt.compile o, LEVEL_TOP
     
     catchPart = if @recovery
       o.scope.add @error.value, 'param' unless o.scope.check @error.value
-      " catch#{errorPart}{\n#{ @recovery.compile o, LEVEL_TOP }\n#{@tab}}"
+      " #{errorPart}\n#{ @recovery.compile o, LEVEL_TOP }\n#{@tab}"
     else unless @ensure or @recovery
-      ' catch (_error) {}'
+      ' (arglist e) (do)' # empty body
       
-    ensurePart = if @ensure then " finally {\n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}}" else ''
+    ensurePart = if @ensure then " \n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}" else ''
       
-    """#{@tab}try {
-    #{tryPart}
-    #{@tab}}#{ catchPart or '' }#{ensurePart}"""
+    """#{@tab}(try 
+    (do #{tryPart})
+    #{@tab} #{ catchPart or '' }\n(do#{ensurePart}))"""
 
 #### Throw
 

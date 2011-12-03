@@ -32,6 +32,8 @@ class Node:
       return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
     elif name == "call":
       return "(%s)()" % self.args[0].compile()
+    elif name == "try":
+      return "try {\n%s\n} catch %s  {\n%s} finally {\n%s}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile(), self.args[3].compile())
     elif name == "do":
       return ";\n".join([arg.compile() for arg in self.args])
     elif name == "var":
@@ -48,6 +50,8 @@ class Node:
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
     elif name == "+":
       return "(%s + %s)" % (self.args[0].compile(), self.args[1].compile())
+    elif name == "/":
+      return "(%s / %s)" % (self.args[0].compile(), self.args[1].compile())
     else: #unknown function name, translate to js directly
       return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
 
