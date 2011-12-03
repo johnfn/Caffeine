@@ -15,4 +15,4 @@ Compiles CoffeeScript to an intermediary Scheme-like language, which is then tra
 	There are two things to note here. One is "arglist", which is just a list of arguments - I do it this way because just doing `(x y)` would break abstraction (seems like we're calling x with y). 
 	The other is that we don't have named functions, just anonymous functions.
 
-* The `catch` part of a try/catch is now a function. 
+* Try catch is a little weird. It takes 4 arguments: try body, catch arglist, catch body, finally body. None of them are optional - you just pass in `(do)` for empty bodies.
