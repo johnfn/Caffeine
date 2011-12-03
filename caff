@@ -1,0 +1,7 @@
+#!/bin/bash
+
+git checkout lib 
+cake build 
+bin/coffee -c "$1.coffee"
+./scheme2js.py "$1.sc"
+node "$1.js"

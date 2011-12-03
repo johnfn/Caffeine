@@ -1,15 +1,8 @@
+#!/usr/bin/python
 import re
+import sys
 
-input = """
-(fn (arglist) 
-  (var a)
-
-  (= a (fn (arglist x y) (do 
-    (return  (+ x y))
-  )))
-
-)
-"""
+input = "\n".join([l for l in open(sys.argv[1])])
 
 class Node:
   def __init__(self, name, args):
@@ -114,4 +107,5 @@ def parse(string):
 
 ast = parse(input)
 
-print ast.compile()
+output = sys.argv[1].split(".")[0] + ".js" #same name as input, but .js instead of .sc
+open(output, 'w').write(ast.compile())
