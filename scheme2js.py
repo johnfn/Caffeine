@@ -56,7 +56,7 @@ class Node:
       return self.wrap("if (%s) {return %s;} else {return %s;}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile()))
       # return ("if (%s) {%s;} else {%s;}") % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     elif name == "function":
-      return "function %s { %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
+      return "function %s { return %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
     elif name == "arglist":
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
 
