@@ -251,7 +251,7 @@ exports.Block = class Block extends Base
     code     = @compileWithDeclarations o
     # the `1` below accounts for `arguments`, always "in scope"
     return code if o.bare or o.scope.variables.length <= 1
-    "(fn (arglist) \n#{code}\n)\n"
+    "(function (arglist) \n#{code}\n)\n"
 
   # Compile the expressions body for the contents of a function, with
   # declarations of all inner variables pushed up to the top.
@@ -1141,7 +1141,7 @@ exports.Code = class Code extends Base
       else
         o.scope.parent.assign '_this', 'this'
     idt   = o.indent
-    code  = '(fn '
+    code  = '(function '
     code  += ' ' + @name if @ctor
     code  += '(arglist ' + vars.join(' ') + ') (do '
     code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
