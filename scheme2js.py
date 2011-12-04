@@ -27,8 +27,8 @@ class Node:
     return "(function(){return %s;})()" % (str)
   
   def compile(self):
-    ops = ["+", "/", "*", "-", "||", "&&", "===", "!=="]
-    
+    ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*="]
+
     name = self.name
     if name == "=":
       return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
