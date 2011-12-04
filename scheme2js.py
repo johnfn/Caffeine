@@ -33,6 +33,8 @@ class Node:
     name = self.name
     if name == "=":
       return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
+    elif name == "root":
+      return ";\n".join([arg.compile() for arg in self.args])
     elif name == "call":
       return "(%s)()" % self.args[0].compile()
     elif name == "try":
@@ -78,18 +80,40 @@ class Atom:
   def __repr__(self):
     return "Atom " + self.contents
 
+def is_paren(str):
+  return str == "(" or str == ")"
+
 def tokenize(string):
-  string = string.replace("(", " ( ")
-  string = string.replace(")", " ) ")
-  return [token.strip() for token in string.split(" ") if token.strip() != ""]
+  in_string = False
+  string_opener = ""
+  tokens = [""]
+  for ch in string:
+    if ch == " ":
+      tokens.append("")
+      continue
+
+    if is_paren(ch):
+      tokens.append(ch)
+      tokens.append("")
+      continue
+
+    tokens[-1] += ch
+
+    if ch == "'" or ch == '"':
+      in_string = not in_string
+      if not in_string: tokens.append("")
+
+    if in_string: continue
+      
+  tokens = [tok.strip() for tok in tokens[:-1] if tok.strip() != ""]
+  return tokens
 
 def parse(string):
   string = string.strip()
   string = "(root " + string + ")"
   tokens = tokenize(string)
 
-  def paren(str):
-    return str == "(" or str == ")"
+  print tokens
 
   def helper(tokens):
     node_name = tokens[1]
@@ -98,7 +122,7 @@ def parse(string):
 
     depth = 0
     for token in tokens:
-      if paren(token): 
+      if is_paren(token): 
         depth = depth + (1 if token == "(" else -1)
         node_args[-1].append(token)
 
