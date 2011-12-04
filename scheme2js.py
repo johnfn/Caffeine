@@ -40,7 +40,9 @@ class Node:
     elif name == "try":
       return "try {\n%s\n} catch %s  {\n%s} finally {\n%s}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile(), self.args[3].compile())
     elif name == "do":
-      return ";\n".join([arg.compile() for arg in self.args])
+      if len(self.args) == 0:
+        return self.wrap("return void 0");
+      return self.wrap(";\n".join([arg.compile() for arg in self.args[:-1]]) + "\nreturn %s;" % (self.args[-1].compile()))
     elif name == "var":
       return "var %s" % ",".join([arg.compile() for arg in self.args])
     elif name == "root":
@@ -50,8 +52,10 @@ class Node:
     elif name == "if":
       while len(self.args) < 3:
         self.args.append(Node("void", [Atom("0")])) # Append empty bodies to unfilled parts of the if
-      return ("if (%s) {%s;} else {%s;}") % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
-    elif name == "fn":
+      
+      return self.wrap("if (%s) {return %s;} else {return %s;}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile()))
+      # return ("if (%s) {%s;} else {%s;}") % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
+    elif name == "function":
       return "function %s { %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
     elif name == "arglist":
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
