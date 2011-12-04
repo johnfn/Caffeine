@@ -7,7 +7,7 @@
 {RESERVED} = require './lexer'
 
 # Import the helpers we plan to use.
-{compact, flatten, extend, merge, del, starts, ends, last} = require './helpers'
+{dump, compact, flatten, extend, merge, del, starts, ends, last} = require './helpers'
 
 exports.extend = extend  # for parser
 
