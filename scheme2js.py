@@ -45,6 +45,8 @@ class Node:
     elif name == "==":
       return "%s == %s" % (self.args[0].compile(), self.args[1].compile())
     elif name == "if":
+      while len(self.args) < 3:
+        self.args.append(Node("void", [Atom("0")])) # Append empty bodies to unfilled parts of the if
       return ("if (%s) {%s;} else {%s;}") % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     elif name == "fn":
       return "function %s { %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
