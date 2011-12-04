@@ -32,7 +32,7 @@ class Node:
 
     name = self.name
     if name == "=":
-      return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
+      return "(%s = %s)" % (self.args[0].compile(), self.args[1].compile())
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
     elif name == "call":
