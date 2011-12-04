@@ -236,7 +236,7 @@ exports.Block = class Block extends Base
         return '\n' + codes.join('\n\n') + '\n'
       else
         return "#{codes.join '\n'}"
-    code = codes.join(', ') or 'void 0'
+    code = codes.join(', ') or '(void 0)'
     "(do #{code})"
 
   # If we happen to be the top-level **Block**, wrap everything in
