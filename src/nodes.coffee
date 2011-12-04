@@ -1462,7 +1462,7 @@ exports.Try = class Try extends Base
     
     catchPart = if @recovery
       o.scope.add @error.value, 'param' unless o.scope.check @error.value
-      " #{errorPart}\n#{ @recovery.compile o, LEVEL_TOP }\n#{@tab}"
+      " #{errorPart}\n(do #{ @recovery.compile o, LEVEL_TOP })\n#{@tab}"
     else unless @ensure or @recovery
       ' (arglist e) (do)' # empty body
       
