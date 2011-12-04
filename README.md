@@ -4,13 +4,19 @@
 
 Compiles CoffeeScript to an intermediary Scheme-like language, which is then translated to JavaScript.
 
+## Usage
+
+`./caff myfile`. Note: NOT `./caff myfile.coffee`! 
+
+Will generate myfile.sc, the intermediate "scheme" code.
+
 ## Design decisions
 
 * `do` - forms like `if` can only take 3 arguments - condition, then-body, else-body - but the bodies may consist of many statements. `do` groups several statements into one.
 
 * `a = (x, y) -> x + y` translates to this:
 
-	`(= a (fn (arglist x y) (+ x y)))`
+	`(= a (function (arglist x y) (+ x y)))`
 
 	There are two things to note here. One is "arglist", which is just a list of arguments - I do it this way because just doing `(x y)` would break abstraction (seems like we're calling x with y). 
 	The other is that we don't have named functions, just anonymous functions.
