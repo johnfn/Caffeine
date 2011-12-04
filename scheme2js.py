@@ -28,6 +28,7 @@ class Node:
   
   def compile(self):
     ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*="]
+    unary = ["!", "+", "-", "new", "typeof"]
 
     name = self.name
     if name == "=":
@@ -56,6 +57,10 @@ class Node:
     for op in ops:
       if name == op:
         return "(%s %s %s)" % (self.args[0].compile(), op, self.args[1].compile())
+    
+    for op in unary:
+      if name == op:
+        return "(%s %s)" % (op, self.args[0].compile())
 
     return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
 
