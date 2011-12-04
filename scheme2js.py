@@ -88,22 +88,23 @@ def tokenize(string):
   string_opener = ""
   tokens = [""]
   for ch in string:
-    if ch == " ":
-      tokens.append("")
-      continue
-
-    if is_paren(ch):
-      tokens.append(ch)
-      tokens.append("")
-      continue
-
-    tokens[-1] += ch
-
     if ch == "'" or ch == '"':
       in_string = not in_string
+      tokens[-1] += ch
       if not in_string: tokens.append("")
+      continue
 
-    if in_string: continue
+    if not in_string:
+      if ch == " ":
+        tokens.append("")
+        continue
+
+      if is_paren(ch):
+        tokens.append(ch)
+        tokens.append("")
+        continue
+
+    tokens[-1] += ch
       
   tokens = [tok.strip() for tok in tokens[:-1] if tok.strip() != ""]
   return tokens
@@ -112,8 +113,6 @@ def parse(string):
   string = string.strip()
   string = "(root " + string + ")"
   tokens = tokenize(string)
-
-  print tokens
 
   def helper(tokens):
     node_name = tokens[1]
