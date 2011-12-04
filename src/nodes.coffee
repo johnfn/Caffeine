@@ -1388,13 +1388,11 @@ exports.Op = class Op extends Base
   compileUnary: (o) ->
     parts = [op = @operator]
     plusMinus = op in ['+', '-']
-    parts.push ' ' if op in ['new', 'typeof', 'delete'] or
-                      plusMinus and @first instanceof Op and @first.operator is op
     if (plusMinus && @first instanceof Op) or (op is 'new' and @first.isStatement o)
       @first = new Parens @first 
     parts.push @first.compile o, LEVEL_OP
     parts.reverse() if @flip
-    parts.join ''
+    "(#{parts.join ' '})"
 
   toString: (idt) ->
     super idt, @constructor.name + ' ' + @operator
