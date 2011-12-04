@@ -24,7 +24,7 @@ class Node:
     return self.tostr(0)
 
   def wrap(self, str):
-    return "(function(){return %s;})()" % (str)
+    return "(function(){%s;})()" % (str)
   
   def compile(self):
     ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*="]
