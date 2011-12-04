@@ -1150,7 +1150,7 @@ exports.Code = class Code extends Base
     code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
     code  += '))'
     return @tab + code if @ctor
-    if @front or (o.level >= LEVEL_ACCESS) then "#{code}" else code
+    code
 
   # Short-circuit `traverseChildren` method to prevent it from crossing scope boundaries
   # unless `crossScope` is `true`.
@@ -1762,7 +1762,7 @@ exports.If = class If extends Base
     body = @bodyNode().compile o, LEVEL_LIST
     alt  = if @elseBodyNode() then @elseBodyNode().compile(o, LEVEL_LIST) else '(void 0)'
     code = "(if #{cond} #{body} #{alt})"
-    if o.level >= LEVEL_COND then "#{code}" else code
+    code
 
   unfoldSoak: ->
     @soak and this
