@@ -27,7 +27,7 @@ class Node:
     return "(function(){%s;})()" % (str)
   
   def compile(self):
-    ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*="]
+    ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*=", "instanceof", "<", ">", "<=", ">="]
     unary = ["!", "+", "-", "new", "typeof"]
 
     name = self.name
@@ -57,11 +57,11 @@ class Node:
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
 
     for op in ops:
-      if name == op:
+      if name == op and len(self.args) == 2:
         return "(%s %s %s)" % (self.args[0].compile(), op, self.args[1].compile())
     
     for op in unary:
-      if name == op:
+      if name == op and len(self.args) == 1:
         return "(%s %s)" % (op, self.args[0].compile())
 
     return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
