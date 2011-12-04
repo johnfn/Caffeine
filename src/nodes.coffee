@@ -346,7 +346,7 @@ exports.Return = class Return extends Base
     if expr and expr not instanceof Return then expr.compile o, level else super o, level
 
   compileNode: (o) ->
-    @tab + "(return #{[" #{@expression.compile o, LEVEL_PAREN}" if @expression]})"
+    @tab + "#{[" #{@expression.compile o, LEVEL_PAREN}" if @expression]}"
 
 #### Value
 
