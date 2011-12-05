@@ -559,7 +559,7 @@ exports.Call = class Call extends Base
     if @isSuper
       @superReference(o) + ".call(this#{ args and ', ' + args })"
     else
-      "(" + (if @isNew then 'new ' else '') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
+      "(" + (if @isNew then 'new ' else 'call ') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
 
   # `super()` is converted into a call against the superclass's implementation
   # of the current function.
