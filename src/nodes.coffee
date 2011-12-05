@@ -1269,16 +1269,16 @@ exports.While = class While extends Base
     else
       if @returns
         body.makeReturn rvar = o.scope.freeVariable 'results'
-        set  = "#{@tab}#{rvar} = []\n"
+        set  = "#{@tab}(= #{rvar} [])\n"
       if @guard
         if body.expressions.length > 1
           body.expressions.unshift new If (new Parens @guard).invert(), new Literal "continue"
         else
           body = Block.wrap [new If @guard, body] if @guard
       body = "\n#{ body.compile o, LEVEL_TOP }\n#{@tab}"
-    code = set + @tab + "while (#{ @condition.compile o, LEVEL_PAREN }) {#{body}}"
+    code = set + @tab + "(while #{ @condition.compile o, LEVEL_PAREN } (brackets #{body}))"
     if @returns
-      code += "\n#{@tab}return #{rvar};"
+      code += "\n#{@tab} (return #{rvar})"
     code
 
 #### Op
