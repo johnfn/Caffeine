@@ -7,7 +7,7 @@
 {RESERVED} = require './lexer'
 
 # Import the helpers we plan to use.
-{dump, compact, flatten, extend, merge, del, starts, ends, last} = require './helpers'
+{compact, flatten, extend, merge, del, starts, ends, last} = require './helpers'
 
 exports.extend = extend  # for parser
 
@@ -207,8 +207,7 @@ exports.Block = class Block extends Base
 
   # A **Block** is the only node that can serve as the root.
   compile: (o = {}, level) ->
-    o.indent or= ""
-    "#{o.indent}#{if o.scope then super o, level else @compileRoot o}"
+    if o.scope then super o, level else @compileRoot o
 
   # Compile all expressions within the **Block** body. If we need to
   # return the result, and it's an expression, simply return it. If it's a
@@ -235,9 +234,9 @@ exports.Block = class Block extends Base
       if @spaced
         return '\n' + codes.join('\n\n') + '\n'
       else
-        return "#{codes.join '\n'}"
-    code = codes.join(', ') or '(void 0)'
-    "(do #{code})"
+        return codes.join '\n'
+    code = codes.join(' ') or '(void 0)'
+    if codes.length > 1 and o.level >= LEVEL_LIST then "(parenthesize (docomma #{code}))" else code
 
   # If we happen to be the top-level **Block**, wrap everything in
   # a safety closure, unless requested not to.
@@ -251,7 +250,7 @@ exports.Block = class Block extends Base
     code     = @compileWithDeclarations o
     # the `1` below accounts for `arguments`, always "in scope"
     return code if o.bare or o.scope.variables.length <= 1
-    "(function (arglist) \n#{code}\n)\n"
+    "(function \n#{code}\n)\n" 
 
   # Compile the expressions body for the contents of a function, with
   # declarations of all inner variables pushed up to the top.
@@ -262,8 +261,9 @@ exports.Block = class Block extends Base
       break unless exp instanceof Comment or exp instanceof Literal
     o = merge(o, level: LEVEL_TOP)
     if i
-      rest = @expressions.splice i, @expressions.length
-      code = @compileNode(o)
+      rest = @expressions.splice i, 9e9
+      [spaced, @spaced] = [@spaced, no]
+      [code  , @spaced] = [(@compileNode o), spaced]
       @expressions = rest
     post = @compileNode o
     {scope} = o
@@ -276,8 +276,8 @@ exports.Block = class Block extends Base
         if declars
           code += scope.declaredVariables().join ' '
         if assigns
-          code += ",\n#{@tab + TAB}" if declars
-          code += scope.assignedVariables().join ",\n#{@tab + TAB}"
+          code += "\n#{@tab + TAB}" if declars
+          code += scope.assignedVariables().join "\n#{@tab + TAB})"
         code += ')\n'
     code + post
 
@@ -322,7 +322,7 @@ exports.Literal = class Literal extends Base
       "\"#{@value}\""
     else
       @value
-    if @isStatement() then "#{@tab}#{code}" else code
+    if @isStatement() then "#{@tab}#{code};" else code
 
   toString: ->
     ' "' + @value + '"'
@@ -347,9 +347,9 @@ exports.Return = class Return extends Base
 
   compileNode: (o) ->
     if @expression
-      @tab + "#{[" #{@expression.compile o, LEVEL_PAREN}" if @expression]}"
+      @tab + "(return #{[" #{@expression.compile o, LEVEL_PAREN}" if @expression]})"
     else
-      @tab + "(void 0)"
+      @tab + "(return (void 0))"
 
 #### Value
 
@@ -461,8 +461,7 @@ exports.Comment = class Comment extends Base
   compileNode: (o, level) ->
     code = '/*' + multident(@comment, @tab) + "\n#{@tab}*/"
     code = o.indent + code if (level or o.level) is LEVEL_TOP
-    #code
-    ""
+    "" 
 
 #### Call
 
@@ -484,8 +483,7 @@ exports.Call = class Call extends Base
     else
       @isNew = true
     this
-  
-  #TODO
+
   # Grab the reference to the superclass's implementation of the current
   # method.
   superReference: (o) ->
@@ -501,7 +499,6 @@ exports.Call = class Call extends Base
     else
       "#{name}.__super__.constructor"
 
-  #TODO 
   # Soaked chained invocations unfold into if/else ternary structures.
   unfoldSoak: (o) ->
     if @soak
@@ -560,9 +557,9 @@ exports.Call = class Call extends Base
     args = @filterImplicitObjects @args
     args = (arg.compile o, LEVEL_LIST for arg in args).join ' '
     if @isSuper
-      @superReference(o) + ".call(this#{ args and ', ' + args })" #TODO
+      @superReference(o) + ".call(this#{ args and ', ' + args })"
     else
-      (if @isNew then '(new ' else '(') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
+      "(" + (if @isNew then 'new ' else '') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
 
   # `super()` is converted into a call against the superclass's implementation
   # of the current function.
@@ -932,9 +929,6 @@ exports.Class = class Class extends Base
     klass = new Assign @variable, klass if @variable
     klass.compile o
 
-
-#TODO
-
 #### Assign
 
 # The **Assign** is used to assign a local variable to value, or to set the
@@ -978,7 +972,8 @@ exports.Assign = class Assign extends Base
       @value.name  = match[2] ? match[3] ? match[4] ? match[5]
     val = @value.compile o, LEVEL_LIST
     return "#{name}: #{val}" if @context is 'object'
-    "(#{ @context or '=' } #{name} #{val})"
+    val = "(#{ @context or '=' } #{name} #{val})"
+    if o.level <= LEVEL_LIST then val else "(#{val})"
 
   # Brief implementation of recursive pattern matching, when assigning array or
   # object literals to a value. Peeks at their properties to assign inner names.
@@ -990,7 +985,7 @@ exports.Assign = class Assign extends Base
     {objects} = @variable.base
     unless olen = objects.length
       code = value.compile o
-      return if o.level >= LEVEL_OP then "#{code}" else code
+      return if o.level >= LEVEL_OP then "(#{code})" else code
     isObject = @variable.isObject()
     if top and olen is 1 and (obj = objects[0]) not instanceof Splat
       # Unroll simplest cases: `{v} = x` -> `v = x.v`
@@ -1014,7 +1009,7 @@ exports.Assign = class Assign extends Base
     assigns = []
     splat   = false
     if not IDENTIFIER.test(vvar) or @variable.assigns(vvar)
-      assigns.push "(= #{ ref = o.scope.freeVariable 'ref' } #{vvar})"
+      assigns.push "#{ ref = o.scope.freeVariable 'ref' } = #{vvar}"
       vvar = ref
     for obj, i in objects
       # A regular array pattern-match.
@@ -1144,13 +1139,18 @@ exports.Code = class Code extends Base
       else
         o.scope.parent.assign '_this', 'this'
     idt   = o.indent
-    code  = '(function '
-    code  += ' ' + @name if @ctor
-    code  += '(arglist ' + vars.join(' ') + ') (do '
+    has_name = @ctor
+    
+    code   = ""
+    code  += '(=' + @name if @ctor
+    code  += '(function'
+    code  += ' (arglist ' + vars.join(' ') + ') '
     code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
-    code  += '))'
+    code  += ')'
+    code  += ')' if has_name
+
     return @tab + code if @ctor
-    code
+    if @front or (o.level >= LEVEL_ACCESS) then "(parenthesize #{code})" else code
 
   # Short-circuit `traverseChildren` method to prevent it from crossing scope boundaries
   # unless `crossScope` is `true`.
@@ -1269,7 +1269,7 @@ exports.While = class While extends Base
     else
       if @returns
         body.makeReturn rvar = o.scope.freeVariable 'results'
-        set  = "#{@tab}#{rvar} = [];\n"
+        set  = "#{@tab}#{rvar} = []\n"
       if @guard
         if body.expressions.length > 1
           body.expressions.unshift new If (new Parens @guard).invert(), new Literal "continue"
@@ -1365,7 +1365,8 @@ exports.Op = class Op extends Base
     return @compileUnary     o if @isUnary()
     return @compileChain     o if isChain
     return @compileExistence o if @operator is '?'
-    "(#{@operator} #{@first.compile(o, LEVEL_OP)} #{@second.compile(o, LEVEL_OP)})"
+    code = "(#{@operator} #{@first.compile(o, LEVEL_OP)} #{@second.compile(o, LEVEL_OP)})"
+    if o.level <= LEVEL_OP then code else "(parenthesize #{code})"
 
   # Mimic Python's chained comparisons when multiple comparison operators are
   # used sequentially. For example:
@@ -1458,20 +1459,20 @@ exports.Try = class Try extends Base
   # is optional, the *catch* is not.
   compileNode: (o) ->
     o.indent  += TAB
-    errorPart = if @error then " (arglist #{ @error.compile o }) " else ' '
+    errorPart = if @error then " (arglist #{ @error.compile o }) " else '(do)'
     tryPart   = @attempt.compile o, LEVEL_TOP
     
     catchPart = if @recovery
       o.scope.add @error.value, 'param' unless o.scope.check @error.value
-      " #{errorPart}\n(do #{ @recovery.compile o, LEVEL_TOP })\n#{@tab}"
+      " #{errorPart}\n(brackets #{ @recovery.compile o, LEVEL_TOP })\n#{@tab}"
     else unless @ensure or @recovery
-      ' (arglist e) (do)' # empty body
+      ' (arglist _error) (do)'
       
-    ensurePart = if @ensure then " \n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}" else ''
+    ensurePart = if @ensure then " \n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}" else '(do)'
       
     """#{@tab}(try 
-    (do #{tryPart})
-    #{@tab} #{ catchPart or '' }\n(do#{ensurePart}))"""
+    (brackets #{tryPart})
+    #{@tab} #{ catchPart or '' } (brackets #{ensurePart}))"""
 
 #### Throw
 
@@ -1507,11 +1508,11 @@ exports.Existence = class Existence extends Base
     code = @expression.compile o, LEVEL_OP
     if IDENTIFIER.test(code) and not o.scope.check code
       [cmp, cnj] = if @negated then ['===', '||'] else ['!==', '&&']
-      code = "(#{cnj} (#{cmp} (typeof #{code}) \"undefined\") (#{cmp} #{code} null))"
+      code = "typeof #{code} #{cmp} \"undefined\" #{cnj} #{code} #{cmp} null"
     else
       # do not use strict equality here; it will break existing code
       code = "(#{if @negated then '==' else '!='} #{code} null)"
-    if o.level <= LEVEL_COND then code else "#{code}"
+    if o.level <= LEVEL_COND then code else "(parenthesize #{code})"
 
 #### Parens
 
@@ -1533,7 +1534,10 @@ exports.Parens = class Parens extends Base
     if expr instanceof Value and expr.isAtomic()
       expr.front = @front
       return expr.compile o
-    expr.compile o, LEVEL_PAREN
+    code = expr.compile o, LEVEL_PAREN
+    bare = o.level < LEVEL_OP and (expr instanceof Op or expr instanceof Call or
+      (expr instanceof For and expr.returns))
+    if bare then code else "(parenthesize #{code})"
 
 #### For
 
@@ -1749,7 +1753,7 @@ exports.If = class If extends Base
     ifPart   = "(if #{cond} #{bodyc}"
     ifPart   = @tab + ifPart unless child
     return ifPart + ")" unless @elseBody
-    ifPart + if @isChain
+    ifPart + ' ' + if @isChain
       o.indent = @tab
       o.chainChild = yes
       (@elseBody.unwrap().compile o, LEVEL_TOP) + ")"
@@ -1761,8 +1765,8 @@ exports.If = class If extends Base
     cond = @condition.compile o, LEVEL_COND
     body = @bodyNode().compile o, LEVEL_LIST
     alt  = if @elseBodyNode() then @elseBodyNode().compile(o, LEVEL_LIST) else '(void 0)'
-    code = "(if #{cond} #{body} #{alt})"
-    code
+    code = "(ternary #{cond} #{body} #{alt})"
+    if o.level >= LEVEL_COND then "(parenthesize #{code})" else code
 
   unfoldSoak: ->
     @soak and this

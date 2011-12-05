@@ -32,9 +32,15 @@ class Node:
 
     name = self.name
     if name == "=":
-      return "(%s = %s)" % (self.args[0].compile(), self.args[1].compile())
+      return "%s = %s" % (self.args[0].compile(), self.args[1].compile())
+    elif name == "parenthesize":
+      return "(%s)" % (self.args[0].compile())
+    elif name == "brackets":
+      return "{%s}" % (";\n".join([arg.compile() for arg in self.args]))
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
+    elif name == "commado":
+      return ", ".join([arg.compile() for arg in self.args])
     elif name == "call":
       return "(%s)()" % self.args[0].compile()
     elif name == "try":
@@ -42,24 +48,26 @@ class Node:
     elif name == "do":
       if len(self.args) == 0:
         return "(void 0)"
-      return self.wrap(",\n".join([arg.compile() for arg in self.args]))
+      return ",\n".join([arg.compile() for arg in self.args])
+    elif name == "docomma":
+      assert len(self.args) > 0
+      return ",\n".join([arg.compile() for arg in self.args])
     elif name == "var":
       return "var %s" % ",".join([arg.compile() for arg in self.args])
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
     elif name == "==":
       return "%s == %s" % (self.args[0].compile(), self.args[1].compile())
-    elif name == "ternary":
-      assert len(self.args) == 3
-      return "(%s ? %s : %s)" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     elif name == "if":
       while len(self.args) < 3:
         self.args.append(Node("void", [Atom("0")])) # Append empty bodies to unfilled parts of the if
       
-      return self.wrap("if (%s) {return %s;} else {return %s;}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile()))
+      return "if (%s) {%s;} else {%s;}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
+    elif name == "ternary":
+      return "%s ? %s : %s " % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
       # return ("if (%s) {%s;} else {%s;}") % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     elif name == "function":
-      return "function %s { return %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
+      return "function %s { %s }" % (self.args[0].compile(), ";".join([arg.compile() for arg in self.args[1:]]))
     elif name == "arglist":
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
 
