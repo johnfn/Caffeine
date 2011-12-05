@@ -41,14 +41,17 @@ class Node:
       return "try {\n%s\n} catch %s  {\n%s} finally {\n%s}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile(), self.args[3].compile())
     elif name == "do":
       if len(self.args) == 0:
-        return self.wrap("return void 0");
-      return self.wrap(";\n".join([arg.compile() for arg in self.args[:-1]]) + "\nreturn %s;" % (self.args[-1].compile()))
+        return "(void 0)"
+      return self.wrap(",\n".join([arg.compile() for arg in self.args]))
     elif name == "var":
       return "var %s" % ",".join([arg.compile() for arg in self.args])
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
     elif name == "==":
       return "%s == %s" % (self.args[0].compile(), self.args[1].compile())
+    elif name == "ternary":
+      assert len(self.args) == 3
+      return "(%s ? %s : %s)" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     elif name == "if":
       while len(self.args) < 3:
         self.args.append(Node("void", [Atom("0")])) # Append empty bodies to unfilled parts of the if
