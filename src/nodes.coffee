@@ -322,7 +322,7 @@ exports.Literal = class Literal extends Base
       "\"#{@value}\""
     else
       @value
-    if @isStatement() then "#{@tab}#{code};" else code
+    if @isStatement() then "#{@tab}(#{code})" else code
 
   toString: ->
     ' "' + @value + '"'
