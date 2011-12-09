@@ -48,6 +48,10 @@ class Node:
       return "{%s}" % (";\n".join([arg.compile() for arg in self.args]))
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
+    elif name == "break":
+      return "break;"
+    elif name == "continue":
+      return "continue"
     elif name == "defmacro":
       return ""
     elif name == "commado":
