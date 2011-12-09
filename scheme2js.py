@@ -5,6 +5,8 @@ import sys
 input = "\n".join([l for l in open(sys.argv[1])])
 
 class Node:
+  known_macros = []
+
   def __init__(self, name, args):
     assert isinstance(args, list)
     self.name = name
@@ -26,6 +28,13 @@ class Node:
   def wrap(self, str):
     return "(function(){%s;})()" % (str)
   
+  # Preliminary pass to compile all macros into JS.
+  def compile_macro(self):
+    if self.name == "defmacro":
+      Node.known_macros.append(self.args[0].compile())
+      return "function %s %s { %s } \n" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
+    return "".join([arg.compile_macro() for arg in self.args])
+  
   def compile(self):
     ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*=", "instanceof", "<", ">", "<=", ">=", "%"]
     unary = ["!", "+", "-", "new", "typeof", "++", "--"]
@@ -39,6 +48,8 @@ class Node:
       return "{%s}" % (";\n".join([arg.compile() for arg in self.args]))
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
+    elif name == "defmacro":
+      return ""
     elif name == "commado":
       return ", ".join([arg.compile() for arg in self.args])
     elif name == "call":
@@ -95,6 +106,9 @@ class Atom:
 
   def compile(self):
     return self.contents
+  
+  def compile_macro(self):
+    return ""
  
   def __repr__(self):
     return "Atom " + self.contents
@@ -163,4 +177,14 @@ def parse(string):
 ast = parse(input)
 
 output = sys.argv[1].split(".")[0] + ".js" #same name as input, but .js instead of .sc
+
+
+macros = ast.get_macros()
+# Header contains some basic lisp-y functions.
+header = "".join([line for line in file("basic.sc")]) + "\n"
+header = parse(header).compile()
+
+macro_js = header + ast.compile_macro()
+open("temp", 'w').write(macro_js)
+
 open(output, 'w').write(ast.compile())
