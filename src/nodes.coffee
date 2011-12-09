@@ -559,7 +559,14 @@ exports.Call = class Call extends Base
     if @isSuper
       @superReference(o) + ".call(this#{ args and ', ' + args })"
     else
-      "(" + (if @isNew then 'new ' else 'call ') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
+      name = @variable.compile(o, LEVEL_ACCESS)
+      if name == "sc" #special case sc form that just drops scheme into the intermediary.
+        # Args right now is a string - need to turn it back into code.
+        result = args[1...-1] #strip surrounding quotes
+        result = result.replace(/\\n/g, "\n")
+        result = result.replace(/\\"/g, '"')
+      else
+        "(" + (if @isNew then 'new ' else 'call ') + @variable.compile(o, LEVEL_ACCESS) + " #{args})"
 
   # `super()` is converted into a call against the superclass's implementation
   # of the current function.
