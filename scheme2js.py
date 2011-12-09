@@ -93,6 +93,11 @@ class Node:
       return "(" + ",".join([arg.compile() for arg in self.args]) + ")"
 
     for op in ops:
+      if name == op and len(self.args) > 2:
+        expr = (" " + op + " ").join([arg.compile() for arg in self.args if arg.compile().strip() != ""])
+        print [arg.compile() for arg in self.args]
+        return "(" + expr + ")"
+      
       if name == op and len(self.args) == 2:
         return "(%s %s %s)" % (self.args[0].compile(), op, self.args[1].compile())
     
