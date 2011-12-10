@@ -230,6 +230,11 @@ exports.Block = class Block extends Base
         codes.push if node.isStatement o then code else "#{@tab}#{code}"
       else
         codes.push node.compile o, LEVEL_LIST
+    
+    if @expressions.length > 1
+      codes.push("\n)")
+      codes.unshift("(do\n")
+     
     if top
       if @spaced
         return '\n' + codes.join('\n\n') + '\n'
