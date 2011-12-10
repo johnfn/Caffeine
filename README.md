@@ -58,3 +58,4 @@ Then the macro pass would translate that into this scheme:
 * I should be able to get rid of `brackets`
 * I should get rid of call, too.
 * Seems like tests are broken. FFFFFUUUUUUUUUUUUUUUUUU-
+* Array literal syntax should be tokenized into one big token.
