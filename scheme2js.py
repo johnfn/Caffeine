@@ -108,7 +108,7 @@ class Node:
     elif name == "do":
       if len(self.args) == 0:
         return "(void 0)"
-      return ",\n".join([arg.compile() for arg in self.args])
+      return ";\n".join([arg.compile() for arg in self.args])
     elif name == "docomma":
       assert len(self.args) > 0
       return ",\n".join([arg.compile() for arg in self.args])
