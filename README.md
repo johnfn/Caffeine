@@ -42,6 +42,8 @@ Then the macro pass would translate that into this scheme:
 
 * `do` - forms like `if` can only take 3 arguments - condition, then-body, else-body - but the bodies may consist of many statements. `do` groups several statements into one.
 
+* I haven't done postfix operators (++, --), and I probably wont. Or maybe I will by just having a rewriter that makes them prefix, and stick it to everyone who uses them in complicated ways.
+
 * `a = (x, y) -> x + y` translates to this:
 
 	`(= a (function (arglist x y) (+ x y)))`
@@ -50,3 +52,9 @@ Then the macro pass would translate that into this scheme:
 	The other is that we don't have named functions, just anonymous functions.
 
 * Try catch is a little weird. It takes 4 arguments: try body, catch arglist, catch body, finally body. None of them are optional - you just pass in `(do)` for empty bodies.
+
+## TODO
+
+* I should be able to get rid of `brackets`
+* I should get rid of call, too.
+* Seems like tests are broken. FFFFFUUUUUUUUUUUUUUUUUU-
