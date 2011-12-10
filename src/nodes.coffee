@@ -1436,7 +1436,7 @@ exports.In = class In extends Base
 
   compileLoopTest: (o) ->
     [sub, ref] = @object.cache o, LEVEL_LIST
-    code = utility('indexOf') + ".call(#{ @array.compile o, LEVEL_LIST }, #{ref}) " +
+    code = utility('indexOf') + ".call(#{ @array.compile o, LEVEL_LIST }, #{ref} " +
            if @negated then '< 0' else '>= 0'
     return code if sub is ref
     code = sub + ', ' + code
@@ -1466,7 +1466,7 @@ exports.Try = class Try extends Base
   # is optional, the *catch* is not.
   compileNode: (o) ->
     o.indent  += TAB
-    errorPart = if @error then " (arglist #{ @error.compile o }) " else '(do)'
+    errorPart = if @error then " (arglist #{ @error.compile o })" else '(do)'
     tryPart   = @attempt.compile o, LEVEL_TOP
     
     catchPart = if @recovery
