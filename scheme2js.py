@@ -178,7 +178,9 @@ def tokenize(string):
   string_opener = ""
   tokens = [""]
   for ch in string:
-    if ch == "'" or ch == '"':
+    if (ch == "'" or ch == '"') and (string_opener == ch or string_opener == ""):
+      string_opener = (ch if string_opener == "" else "")
+       
       in_string = not in_string
       tokens[-1] += ch
       if not in_string: tokens.append("")
