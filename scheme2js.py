@@ -1,9 +1,23 @@
 #!/usr/bin/python
 import re
 import sys
+import subprocess
 
 input = "\n".join([l for l in open(sys.argv[1])])
 
+array_to_scheme = """
+function to_scheme(item){
+  if (!(item instanceof Array)) {
+    return item;
+  }
+  var result = "(";
+  for (var i = 0; i < item.length; i++){
+    result += to_scheme(item[i]) + (i == item.length - 1 ? "" : " ");
+  }
+  result += ")";
+  return result;
+}
+"""
 class Node:
   known_macros = []
 
