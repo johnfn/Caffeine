@@ -5,6 +5,11 @@ import subprocess
 
 input = "\n".join([l for l in open(sys.argv[1])])
 
+# Evaluate str with node.
+def nodejs(str):
+  open("temp", 'w').write(str)
+  return subprocess.check_output(["node", "temp"])
+
 array_to_scheme = """
 function to_scheme(item){
   if (!(item instanceof Array)) {
