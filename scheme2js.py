@@ -23,8 +23,13 @@ function to_scheme(item){
   return result;
 }
 """
+
+def toscheme(str):
+  return nodejs(array_to_scheme + "console.log(to_scheme(%s));" % str)
+
 class Node:
   known_macros = []
+  macro_js = ""
 
   def __init__(self, name, args):
     assert isinstance(args, list)
@@ -51,8 +56,27 @@ class Node:
   def compile_macro(self):
     if self.name == "defmacro":
       Node.known_macros.append(self.args[0].compile())
-      return "function %s %s { %s } \n" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
+      return "\nfunction %s %s { %s } \n" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile())
     return "".join([arg.compile_macro() for arg in self.args])
+  
+  # This pass converts all calls to macros into the resultant forms.
+  def first_pass(self):
+    if self.name in Node.known_macros or (self.name == "call" and self.args[0].compile() in Node.known_macros):
+      macro_name = self.name if self.name in Node.known_macros else self.args[0].compile()
+      # Construct JavaScript to call JS function and pass in args
+      # TODO: This is definitely wrong, don't compile the args (just pass them in normally)
+      # TODO: This will be wrong if I get rid of call.
+      js = "console.log(" + macro_name + "(" + ",".join([repr(arg.compile()) for arg in self.args[1:]]) + "))"
+      result = nodejs(Node.macro_js + js)
+      # Result is now basically what we want, except it's JavaScript arrays.
+      result = toscheme(result)
+      new_node = parse(result, False)
+      self.args = new_node.args
+      self.name = new_node.name
+      return
+
+    for node in self.args:
+      node.first_pass()
   
   def compile(self):
     ops = ["+", "/", "*", "-", "||", "&&", "===", "!==", "!=", "==", "+=", "-=", "/=", "*=", "instanceof", "<", ">", "<=", ">=", "%"]
@@ -137,6 +161,9 @@ class Atom:
   def compile(self):
     return self.contents
   
+  def first_pass(self):
+    pass
+  
   def compile_macro(self):
     return ""
  
@@ -172,9 +199,9 @@ def tokenize(string):
   tokens = [tok.strip() for tok in tokens[:-1] if tok.strip() != ""]
   return tokens
 
-def parse(string):
+def parse(string, root=True):
   string = string.strip()
-  string = "(root " + string + ")"
+  if root: string = "(root " + string + ")"
   tokens = tokenize(string)
 
   def helper(tokens):
@@ -209,12 +236,12 @@ ast = parse(input)
 output = sys.argv[1].split(".")[0] + ".js" #same name as input, but .js instead of .sc
 
 
-macros = ast.get_macros()
 # Header contains some basic lisp-y functions.
 header = "".join([line for line in file("basic.sc")]) + "\n"
 header = parse(header).compile()
 
-macro_js = header + ast.compile_macro()
-open("temp", 'w').write(macro_js)
+Node.macro_js = header + ast.compile_macro()
+
+ast.first_pass()
 
 open(output, 'w').write(ast.compile())
