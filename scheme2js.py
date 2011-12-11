@@ -121,7 +121,7 @@ class Node:
     elif name == "==":
       return "%s == %s" % (self.args[0].compile(), self.args[1].compile())
     elif name == "while":
-      return "while (%s) {%s;}" % (self.args[0].compile(), self.args[1].compile())
+      return "while (%s) %s;" % (self.args[0].compile(), self.args[1].compile())
     elif name == "if":
       while len(self.args) < 3:
         self.args.append(Node("void", [Atom("0")])) # Append empty bodies to unfilled parts of the if
