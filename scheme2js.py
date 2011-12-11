@@ -177,6 +177,36 @@ class Atom:
 def is_paren(str):
   return str == "(" or str == ")"
 
+# Add quoting functionality: some basic syntactic sugar to make
+# writing macros easier on the eyes (and brain...)
+def desugar(tokens):
+  result = []
+  quoted = False
+  depth = 0
+  for token in tokens:
+    if token == "`(":
+      quoted = True
+      result.append("(")
+      result.append("list")
+      depth = 1
+    elif token == "(":
+      result.append(token)
+      if quoted: result.append("list")
+      depth += 1
+    elif token == ")":
+      result.append(token)
+      depth -= 1
+      if depth == 0 and quoted:
+        quoted = False
+    elif token[0] == "~":
+      if not quoted:
+        raise "Unquote in nonquoted form?"
+      result.append(token[1:]) #remove tilde, keep token.
+    else:
+      result.append('"%s"' % token if quoted else token)
+  
+  return result
+
 def tokenize(string):
   in_string = False
   string_opener = ""
@@ -196,13 +226,17 @@ def tokenize(string):
         continue
 
       if is_paren(ch):
-        tokens.append(ch)
+        if tokens[-1] == "`": # Special case for quoted parens.
+          tokens[-1] += ch
+        else:
+          tokens.append(ch)
         tokens.append("")
         continue
 
     tokens[-1] += ch
       
   tokens = [tok.strip() for tok in tokens[:-1] if tok.strip() != ""]
+  tokens = desugar(tokens)
   return tokens
 
 def parse(string, root=True):
