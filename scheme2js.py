@@ -39,7 +39,7 @@ class Node:
   # Return scheme representation of self. This is exactly the same as what
   # we read in from the file.
   def toscheme(self):
-    return "(" + " ".join([arg.toscheme() for arg in self.args]) + ")"
+    return "(%s " % self.name + " ".join([arg.toscheme() for arg in self.args]) + ")"
 
   def tostr(self, indent):
     indentation = indent * "  "
@@ -248,7 +248,7 @@ header = parse(header).compile()
 Node.macro_js = header + ast.compile_macro()
 
 ast.first_pass()
-if sys.argv[1] == "--macro":
+if sys.argv[2] == "--macro":
   open("macropass", "w").write(ast.toscheme())
 
 open(output, 'w').write(ast.compile())
