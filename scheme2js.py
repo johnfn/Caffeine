@@ -38,8 +38,8 @@ class Node:
   
   # Return scheme representation of self. This is exactly the same as what
   # we read in from the file.
-  def tosch(self):
-    return "(" + " ".join([arg.tosch() for arg in self.args]) + ")"
+  def toscheme(self):
+    return "(" + " ".join([arg.toscheme() for arg in self.args]) + ")"
 
   def tostr(self, indent):
     indentation = indent * "  "
@@ -67,7 +67,7 @@ class Node:
       macro_name = self.name if self.name in Node.known_macros else self.args[0].compile()
       # Construct JavaScript to call JS function and pass in args
       # TODO: This will be wrong if I get rid of call.
-      js = "console.log(" + macro_name + "(" + ",".join([repr(arg.tosch()) for arg in self.args[1:]]) + "))"
+      js = "console.log(" + macro_name + "(" + ",".join([repr(arg.toscheme()) for arg in self.args[1:]]) + "))"
       result = nodejs(Node.macro_js + js)
       # Result is now basically what we want, except it's JavaScript arrays.
       result = toscheme(result)
@@ -158,7 +158,7 @@ class Atom:
   def tostr(self, indent):
     return indent * "  " + self.contents
 
-  def tosch(self):
+  def toscheme(self):
     return self.contents
   
   def compile(self):
@@ -248,5 +248,7 @@ header = parse(header).compile()
 Node.macro_js = header + ast.compile_macro()
 
 ast.first_pass()
+if sys.argv[1] == "--macro":
+  open("macropass", "w").write(ast.toscheme())
 
 open(output, 'w').write(ast.compile())
