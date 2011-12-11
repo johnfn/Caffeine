@@ -7,3 +7,8 @@ test/*.js
 examples/beautiful_code/parse.coffee
 *.gem
 /node_modules
+*.sw?
+*.sc
+*.js
+macropass
+temp
