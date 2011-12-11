@@ -59,3 +59,5 @@ Then the macro pass would translate that into this scheme:
 * I should get rid of call, too.
 * Array literal syntax should be tokenized into one big token.
 * It is probably possible to replace all semicolons with commas, but I am not sure if this is the case.
+* (gensym)? I can hack without it, but maybe I should include it... hmmm.
+* Better error messages for macros (grab node traceback at least)
