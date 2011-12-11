@@ -98,8 +98,6 @@ class Node:
       return "continue"
     elif name == "defmacro":
       return ""
-    elif name == "commado":
-      return ", ".join([arg.compile() for arg in self.args])
     elif name == "call":
       if len(self.args) == 1:
         return "%s()" % (self.args[0].compile())
