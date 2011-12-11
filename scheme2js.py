@@ -3,11 +3,12 @@ import re
 import sys
 import subprocess
 
+DEBUG = (sys.argv[2] == "--macro")
 input = "\n".join([l for l in open(sys.argv[1])])
 
 # Evaluate str with node.
 def nodejs(str):
-  open("temp", 'w').write(str)
+  open("temp", 'w').write(header + str)
   return subprocess.check_output(["node", "temp"])
 
 array_to_scheme = """
@@ -25,7 +26,7 @@ function to_scheme(item){
 """
 
 def toscheme(str):
-  return nodejs(array_to_scheme + "console.log(to_scheme(%s));" % str)
+  return nodejs(array_to_scheme + "dump(to_scheme(%s));" % str)
 
 class Node:
   known_macros = []
@@ -64,16 +65,18 @@ class Node:
   # This pass converts all calls to macros into the resultant forms.
   def first_pass(self):
     if self.name in Node.known_macros or (self.name == "call" and self.args[0].compile() in Node.known_macros):
+      if DEBUG: print "Transforming %s\n\n" % (self.toscheme())
       macro_name = self.name if self.name in Node.known_macros else self.args[0].compile()
       # Construct JavaScript to call JS function and pass in args
       # TODO: This will be wrong if I get rid of call.
-      js = "console.log(" + macro_name + "(" + ",".join([repr(arg.toscheme()) for arg in self.args[1:]]) + "))"
+      js = "dump(" + macro_name + "(" + ",".join([repr(arg.toscheme()) for arg in self.args[1:]]) + "))"
       result = nodejs(Node.macro_js + js)
       # Result is now basically what we want, except it's JavaScript arrays.
       result = toscheme(result)
       new_node = parse(result, False)
       self.args = new_node.args
       self.name = new_node.name
+      if DEBUG: print "Transformed to %s\n-----------" % (self.toscheme())
       return
 
     for node in self.args:
@@ -238,12 +241,11 @@ ast = parse(input)
 
 output = sys.argv[1].split(".")[0] + ".js" #same name as input, but .js instead of .sc
 
-
 # Header contains some basic lisp-y functions.
 header = "".join([line for line in file("basic.sc")]) + "\n"
 header = parse(header).compile()
 
-Node.macro_js = header + ast.compile_macro()
+Node.macro_js = ast.compile_macro()
 
 ast.first_pass()
 if sys.argv[2] == "--macro":
