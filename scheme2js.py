@@ -49,9 +49,6 @@ class Node:
   def __repr__(self):
     return self.tostr(0)
 
-  def wrap(self, str):
-    return "(function(){%s;})()" % (str)
-  
   # Preliminary pass to compile all macros into JS.
   def compile_macro(self):
     if self.name == "defmacro":
