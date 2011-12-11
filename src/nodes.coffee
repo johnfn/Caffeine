@@ -1256,7 +1256,7 @@ exports.While = class While extends Base
     if res
       super
     else
-      @returns = not @jumps loop: yes
+      @returns = yes
       this
 
   addBody: (@body) ->
