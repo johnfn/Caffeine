@@ -37,6 +37,23 @@ Then the macro pass would translate that into this scheme:
 			(+= i 1)
 			(console.log i))
 
+## OK, what's going on behind the scenes?
+
+The interesting stuff is the macro transformation pass. There is currently only one pass, so if you have an indirectly recursive macro, or a macro that makes another macro, you could be in trouble.
+
+It's not too hard to add another pass though.
+
+### The Macro Transformation Step
+
+1. Compile each macro into a JavaScript function. There are no tricks here. We just pretend that `defmacro` is actually `function` instead.
+2. Recurse through the AST and find all calls to macros. 
+3. For each macro:
+4. Transform arguments from scheme to nested JavaScript lists. (e.g. ["console.log", ["+", 1, 2]]) I'm going to call this data JSON, even though that's technically inaccurate.
+5. Run the macro as a JavaScript function with that JSON.
+6. The macro will give back new JSON. 
+7. Transform that JSON back to scheme.
+8. Parse that scheme and replace the current macro call with it.
+9. Continue with the parse.
 
 ## Design decisions
 
@@ -55,11 +72,16 @@ Then the macro pass would translate that into this scheme:
 
 ## TODO
 
+### High priority
+
+* Write a macro to turn callback soup into something more flat.
+
+### Other stuff
+
 * I should be able to get rid of `brackets`
-* I should get rid of call, too.
 * Array literal syntax should be tokenized into one big token.
 * It is probably possible to replace all semicolons with commas, but I am not sure if this is the case.
-* (gensym)? I can hack without it, but maybe I should include it... hmmm.
+* `(gensym)` ? I can hack without it, but maybe I should include it, since otherwise my macros are not technically correct... hmmm.
 * Better error messages for macros (grab node traceback at least)
-* Tokenizer is currently not smart enough to realize that 1 should be unquoted by default.
+* Tokenizer is currently not smart enough to realize that numbers should be unquoted by default.
 * `basic.sc` should be written in coffeescript which is then compiled to sc. derp.
