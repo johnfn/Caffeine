@@ -151,7 +151,12 @@ class Node:
       if name == op and len(self.args) == 1:
         return "(%s %s)" % (op, self.args[0].compile())
 
-    return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
+    # A special case for stuff like ((function (arglist) 5))
+    # where you immediately call an anonymous function.
+    if self.name == "":
+      return "(%s)()" % self.args[0].compile()
+    else:
+      return "%s(%s)" % (self.name, ", ".join([arg.compile() for arg in self.args]))
 
 
 class Atom:
@@ -249,7 +254,13 @@ def parse(string, root=True):
   def helper(tokens):
     node_name = tokens[1]
     node_args = [[]]
-    tokens = tokens[2:-1] #ignore (, name, and ).
+    # If we immediately call a function, make it an arg of a 
+    # special cased function with no name.
+    if node_name == "(":
+      node_name = ""
+      tokens = tokens[1:-1]
+    else:
+      tokens = tokens[2:-1] #ignore (, name, and ).
 
     depth = 0
     for token in tokens:
