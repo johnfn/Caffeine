@@ -1,6 +1,6 @@
 raw
-presentation
 test.coffee
+presentation
 parser.output
 test/fixtures/underscore
 test/*.js
