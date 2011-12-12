@@ -3,5 +3,5 @@
 git checkout lib 
 cake build 
 bin/coffee --bare -c "$1.coffee"
-./scheme2js.py "$1.sc"
+./scheme2js.py "$1.sc" "$2"
 node "$1.js"
