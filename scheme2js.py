@@ -72,7 +72,7 @@ class Node:
       macro_name = self.name
       # Construct JavaScript to call JS function and pass in args
       js = "dump(" + macro_name + "(" + ",".join([arg.tojson() for arg in self.args]) + "))"
-      print "Running %s\n\n" % (Node.macro_js + js)
+      if DEBUG: print "Running %s\n\n" % (Node.macro_js + js)
       result = nodejs(Node.macro_js + js)
       # Result is now basically what we want, except it's JavaScript arrays.
       result = toscheme(result)
@@ -259,7 +259,6 @@ def parse(string, root=True):
   tokens = tokenize(string)
 
   def helper(tokens):
-    print tokens
     node_name = tokens[1]
     node_args = [[]]
     # If we immediately call a function, make it an arg of a 
