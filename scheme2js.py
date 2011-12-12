@@ -42,6 +42,9 @@ class Node:
   def toscheme(self):
     return "(%s " % self.name + " ".join([arg.toscheme() for arg in self.args]) + ")"
 
+  def tojson(self):
+    return "['%s', " % self.name + ", ".join([arg.tojson() for arg in self.args]) + "]"
+
   def tostr(self, indent):
     indentation = indent * "  "
     result = ""
@@ -64,12 +67,12 @@ class Node:
   
   # This pass converts all calls to macros into the resultant forms.
   def first_pass(self):
-    if self.name in Node.known_macros or (self.name == "call" and self.args[0].compile() in Node.known_macros):
+    if self.name in Node.known_macros:
       if DEBUG: print "Transforming %s\n\n" % (self.toscheme())
-      macro_name = self.name if self.name in Node.known_macros else self.args[0].compile()
+      macro_name = self.name
       # Construct JavaScript to call JS function and pass in args
-      # TODO: This will be wrong if I get rid of call.
-      js = "dump(" + macro_name + "(" + ",".join([repr(arg.toscheme()) for arg in self.args[1:]]) + "))"
+      js = "dump(" + macro_name + "(" + ",".join([arg.tojson() for arg in self.args]) + "))"
+      print "Running %s\n\n" % (Node.macro_js + js)
       result = nodejs(Node.macro_js + js)
       # Result is now basically what we want, except it's JavaScript arrays.
       result = toscheme(result)
@@ -102,9 +105,7 @@ class Node:
     elif name == "defmacro":
       return ""
     elif name == "call":
-      if len(self.args) == 1:
-        return "%s()" % (self.args[0].compile())
-      return "%s(%s)" % (self.args[0].compile(), ", ".join([arg.compile() for arg in self.args[1:]]))
+      raise "CallCalled"
     elif name == "try":
       return "try {\n%s\n} catch %s  {\n%s} finally {\n%s}" % (self.args[0].compile(), self.args[1].compile(), self.args[2].compile(), self.args[3].compile())
     elif name == "do":
@@ -168,6 +169,12 @@ class Atom:
 
   def toscheme(self):
     return self.contents
+  
+  def tojson(self):
+    if isinstance(self.contents, str):
+      return '"%s"' % self.contents
+    else:
+      return self.contents
   
   def compile(self):
     return self.contents
@@ -252,6 +259,7 @@ def parse(string, root=True):
   tokens = tokenize(string)
 
   def helper(tokens):
+    print tokens
     node_name = tokens[1]
     node_args = [[]]
     # If we immediately call a function, make it an arg of a 
