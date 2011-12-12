@@ -220,8 +220,11 @@ def desugar(tokens):
         quoted = False
     elif token[0] == "~":
       if not quoted:
-        raise "Unquote in nonquoted form?"
-      result.append(token[1:]) #remove tilde, keep token.
+        if sys.argv[2] == "--noerr":
+          print "WARNING: unquote in nonquoted form"
+        else:
+          raise "Unquote in nonquoted form?"
+      result.append(token[1:]) #remove tilde, keep token. Note: form will not be "quoted" (as all others are in a quoted block).
     else:
       result.append('"%s"' % token if quoted else token)
   
@@ -241,13 +244,16 @@ def tokenize(string):
       continue
 
     if not in_string:
-      if ch == " ":
-        tokens.append("")
+      if (ch == " " or ch == "\n"):
+        if tokens[-1] != "":
+          tokens.append("")
         continue
 
       if is_paren(ch):
         if tokens[-1] == "`": # Special case for quoted parens.
           tokens[-1] += ch
+        elif len(tokens) >= 2 and tokens[-2] == "`" and tokens[-1] == "":
+          tokens[-2] += ch
         else:
           tokens.append(ch)
         tokens.append("")
@@ -255,6 +261,7 @@ def tokenize(string):
 
     tokens[-1] += ch
       
+  # print tokens
   tokens = [tok.strip() for tok in tokens[:-1] if tok.strip() != ""]
   tokens = desugar(tokens)
   return tokens
@@ -265,6 +272,7 @@ def parse(string, root=True):
   tokens = tokenize(string)
 
   def helper(tokens):
+    print tokens
     node_name = tokens[1]
     node_args = [[]]
     # If we immediately call a function, make it an arg of a 

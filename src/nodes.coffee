@@ -259,7 +259,7 @@ exports.Block = class Block extends Base
 
   # Compile the expressions body for the contents of a function, with
   # declarations of all inner variables pushed up to the top.
-  compileWithDeclarations: (o) ->
+  compileWithDeclarations: (o, ismac) ->
     code = post = ''
     for exp, i in @expressions
       exp = exp.unwrap()
@@ -270,7 +270,7 @@ exports.Block = class Block extends Base
       [spaced, @spaced] = [@spaced, no]
       [code  , @spaced] = [(@compileNode o), spaced]
       @expressions = rest
-    post = @compileNode o
+    post = "#{"`" if ismac}" + @compileNode o
     {scope} = o
     if scope.expressions is this
       declars = o.scope.hasDeclarations()
@@ -327,7 +327,13 @@ exports.Literal = class Literal extends Base
       "\"#{@value}\""
     else
       @value
-    if @isStatement() then "#{@tab}(#{code})" else code
+    if @isStatement() 
+      "#{@tab}(#{code})" 
+    else 
+      if @value[0] == "$"
+        "~" + code[1...code.length]
+      else
+        code
 
   toString: ->
     ' "' + @value + '"'
@@ -1104,6 +1110,11 @@ exports.Code = class Code extends Base
     @body    = body or new Block
     @bound   = tag is 'boundfunc'
     @context = '_this' if @bound
+      
+    if params.length > 0 and params[0].name.value[0] == "$"
+      @ismac = true
+      @macname = params[0].name.value[1...params[0].length]
+
 
   children: ['params', 'body']
 
@@ -1155,9 +1166,12 @@ exports.Code = class Code extends Base
     
     code   = ""
     code  += '(=' + @name if @ctor
-    code  += '(function'
+    if @ismac
+      code += "(defmacro #{@macname}"
+    else
+      code += '(function'
     code  += ' (arglist ' + vars.join(' ') + ') '
-    code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
+    code  += "\n#{ @body.compileWithDeclarations o, @ismac }\n#{@tab}" unless @body.isEmpty()
     code  += ')'
     code  += ')' if has_name
 
