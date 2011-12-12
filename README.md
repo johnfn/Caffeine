@@ -61,5 +61,5 @@ Then the macro pass would translate that into this scheme:
 * It is probably possible to replace all semicolons with commas, but I am not sure if this is the case.
 * (gensym)? I can hack without it, but maybe I should include it... hmmm.
 * Better error messages for macros (grab node traceback at least)
-* Syntactic sugar for macro definitions.
 * Tokenizer is currently not smart enough to realize that 1 should be unquoted by default.
+* `basic.sc` should be written in coffeescript which is then compiled to sc. derp.
