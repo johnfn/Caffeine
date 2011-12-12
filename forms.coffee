@@ -9,6 +9,16 @@ sc """
 
 	(= rest (function (arglist list)
 	  (return (call list.slice 1))))
+  
+  (= map (function (arglist func coll)
+    (var result idx)
+    (= result [])
+    (= idx 0)
+    (while (!= result.length coll.length)
+      (brackets
+        (call result.push (call func ([] coll idx)))
+        (+= idx 1)))
+    (return result)))
 	
 	(defmacro varname (arglist somevar)
 		(return (list "console.log" (+ "'" somevar "'"))))
