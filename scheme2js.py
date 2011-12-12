@@ -116,7 +116,9 @@ class Node:
       return ",\n".join([arg.compile() for arg in self.args])
     elif name == "var":
       return "var %s" % ",".join([arg.compile() for arg in self.args])
-    elif name == "[0]":
+    elif name == "[]":
+      return "%s[%s]" % (self.args[0].compile(), self.args[1].compile())
+    elif name == "[0]": #TODO: Remove for "[]"
       return "(%s)[0]" % self.args[0].compile()
     elif name == "root":
       return ";\n".join([arg.compile() for arg in self.args])
