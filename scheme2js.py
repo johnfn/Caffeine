@@ -67,6 +67,11 @@ class Node:
   
   # This pass converts all calls to macros into the resultant forms.
   def first_pass(self):
+
+    # Allow recursive macros, disallow macros that call other macros.
+    if self.name == "defmacro":
+      return
+
     if self.name in Node.known_macros:
       if DEBUG: print "Transforming %s\n\n" % (self.toscheme())
       macro_name = self.name
