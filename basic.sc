@@ -1,11 +1,24 @@
-(= util (call require "util"))
+(= util (require "util"))
 
 (= dump (function (arglist obj)
   (var result)
-  (= result (call util.inspect obj false null))
+  (= result (util.inspect obj false null))
   (if (== (typeof obj) "string")
-    (= result (call result.slice 1 (- result.length 1))))
-  (call console.log result)))
+    (= result (result.slice 1 (- result.length 1))))
+  (console.log result)))
+
+(= map (function (arglist func coll)
+  (var result idx)
+  (= result [])
+  (= idx 0)
+  (while (!= result.length coll.length)
+    (brackets
+      (result.push (func ([] coll idx)))
+      (+= idx 1)))
+  (return result)))
+
+(= islist (function (arglist obj)
+  (return (instanceof obj Array))))
 
 (= list (function (arglist) 
 	(var args)
@@ -16,4 +29,7 @@
   (return ([0] list))))
 
 (= rest (function (arglist list)
-  (return (call list.slice 1))))
+  (return (list.slice 1))))
+
+(= cons (function (arglist head tail)
+  (return (head.concat tail))))
