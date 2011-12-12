@@ -8,7 +8,7 @@ sc """
 	  (return ([0] list))))
 
 	(= rest (function (arglist list)
-	  (return (call list.slice 1))))
+	  (return (list.slice 1))))
   
   (= map (function (arglist func coll)
     (var result idx)
@@ -16,12 +16,12 @@ sc """
     (= idx 0)
     (while (!= result.length coll.length)
       (brackets
-        (call result.push (call func ([] coll idx)))
+        (result.push (func ([] coll idx)))
         (+= idx 1)))
     (return result)))
 	
 	(defmacro varname (arglist somevar)
-		(return (list "console.log" (+ "'" somevar "'"))))
+		(return (list "console.log" (+ '"' somevar '"'))))
 
   (defmacro myfor (arglist idx start end body)
     (return 
@@ -30,7 +30,37 @@ sc """
           (brackets
             ~body
             (+= ~idx ~1))))))
+
+  (= cons (function (arglist head tail)
+    (return (head.concat tail))))
+  
+  (defmacro turnintolist (arglist body)
+    (return
+      (cons (list "list") (rest body))))
+
+  (defmacro whenlet (arglist somevar cond body)
+    (return 
+      `(if ~cond
+          (do
+            (= ~somevar ~cond)
+            ~body))))
+
+  (= islist (function (arglist obj)
+    (return (instanceof obj Array))))
+
+  (= die (function (arglist body)
+    (console.log "Constraint failed at " body)))
+  
+  (defmacro constrain (arglist somevar cond body)
+    (if (! (islist body)) 
+      (return body)
+      (if (== (first body) "=")
+        (return (list "do" body
+                   (list "if" cond (list "die" (+ '"(' (body.join " ") ')"')))))
+        (return (map (function (arglist x) (return (constrain somevar cond x))) body)))))
 """
+###
+###
 
 ###
   (defmacro myfor (arglist idx start end body)
@@ -54,4 +84,13 @@ sc """
 
 i = 0
 
+(constrain(v, v > 5, ->
+  v = 6
+  v = 5
+  v = 4
+  false
+))()
+
 myfor(i, 1, 10, console.log(i + 5))
+whenlet(i, 5, console.log(i))
+console.log(turnintolist(thisisnonexistent(1,2,3,4)))
