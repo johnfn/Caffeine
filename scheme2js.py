@@ -79,6 +79,7 @@ class Node:
       js = "dump(" + macro_name + "(" + ",".join([arg.tojson() for arg in self.args]) + "))"
       if DEBUG: print "Running %s\n\n" % (Node.macro_js + js)
       result = nodejs(Node.macro_js + js)
+      if DEBUG: print "Got this back:\n%s\n" % result
       # Result is now basically what we want, except it's JavaScript arrays.
       result = toscheme(result)
       new_node = parse(result, False)
