@@ -571,7 +571,7 @@ exports.Call = class Call extends Base
         result = result.replace(/\\n/g, "\n")
         result = result.replace(/\\"/g, '"')
       else
-        "(" + (if @isNew then 'new ' else 'call ') + name + " #{args})"
+        "(" + (if @isNew then 'new ' else '') + name + " #{args})"
 
   # `super()` is converted into a call against the superclass's implementation
   # of the current function.
